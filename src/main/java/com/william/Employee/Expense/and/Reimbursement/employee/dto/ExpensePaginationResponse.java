@@ -4,7 +4,7 @@ import java.util.List;
 
 
 
-public record ExpensePaginationResponse(List<ExpenseDto> moviedto,
+public record ExpensePaginationResponse(List<ExpenseDto> expenseDto,
                                           Integer PageNum,
                                           Integer PageSize,
                                           long totalElements,

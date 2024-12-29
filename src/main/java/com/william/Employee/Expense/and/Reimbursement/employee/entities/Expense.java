@@ -7,10 +7,10 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Set;
 
 
 @Entity
+@Table(name = "expense")
 public class Expense implements Serializable {
 
         @Serial
@@ -30,7 +30,7 @@ public class Expense implements Serializable {
         @NotBlank(message = "ExpenseType cannot be blank")
         private String expenseType;
 
-        @Column(nullable = false)
+        @Column(name = "expense_date", nullable = false)
         private Date currentDate;
 
 
@@ -44,8 +44,8 @@ public class Expense implements Serializable {
 
 
         @Column(nullable = false)
-        @NotNull(message = "phoneNumber year cannot be blank")
-        private Integer phoneNumber;
+        @NotBlank(message = "phoneNumber year cannot be blank")
+        private String phoneNumber;
 
 
         @Column(nullable = false)
@@ -57,7 +57,7 @@ public class Expense implements Serializable {
                        Date currentDate,
                        @NotBlank(message = "expenseDescription cannot be blank") String expenseDescription,
                        @NotBlank(message = "employeeEmploymentId not blank") String employeeEmploymentId,
-                       @NotNull(message = "phoneNumber year cannot be blank") Integer phoneNumber,
+                       @NotBlank(message = "phoneNumber year cannot be blank") String phoneNumber,
                        @NotBlank(message = "image cannot be blank") String image) {
             this.employeeId = employeeId;
             this.nameOfEmployee = nameOfEmployee;
@@ -99,7 +99,7 @@ public class Expense implements Serializable {
             return this.employeeEmploymentId;
         }
 
-        public @NotNull(message = "release year cannot be blank") Integer getPhoneNumber() {
+        public @NotBlank(message = "release year cannot be blank") String getPhoneNumber() {
             return this.phoneNumber;
         }
 

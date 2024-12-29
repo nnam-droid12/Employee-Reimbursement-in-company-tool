@@ -9,16 +9,10 @@ import com.william.Employee.Expense.and.Reimbursement.auth.repository.UserReposi
 import com.william.Employee.Expense.and.Reimbursement.auth.service.AuthService;
 import com.william.Employee.Expense.and.Reimbursement.auth.service.JwtService;
 import com.william.Employee.Expense.and.Reimbursement.auth.service.RefreshTokenService;
-import com.william.Employee.Expense.and.Reimbursement.auth.utils.AuthResponse;
-import com.william.Employee.Expense.and.Reimbursement.auth.utils.LoginRequest;
-import com.william.Employee.Expense.and.Reimbursement.auth.utils.RefreshTokenRequest;
-import com.william.Employee.Expense.and.Reimbursement.auth.utils.RegisterRequest;
+import com.william.Employee.Expense.and.Reimbursement.auth.utils.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -43,6 +37,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginHandler(@RequestBody LoginRequest loginRequest){
         return ResponseEntity.ok(authService.login(loginRequest));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> userLogout(@RequestBody LogoutRequest logoutRequest){
+        String email = logoutRequest.getEmail();
+        authService.logout(email);
+        return ResponseEntity.ok("user logout Successfully");
+    }
+
 
 
     @PostMapping("/admin-login")

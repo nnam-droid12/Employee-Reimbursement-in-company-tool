@@ -6,11 +6,11 @@ import com.william.Employee.Expense.and.Reimbursement.auth.entities.UserRole;
 import com.william.Employee.Expense.and.Reimbursement.auth.repository.UserRepository;
 import com.william.Employee.Expense.and.Reimbursement.auth.utils.AuthResponse;
 import com.william.Employee.Expense.and.Reimbursement.auth.utils.LoginRequest;
+import com.william.Employee.Expense.and.Reimbursement.auth.utils.LogoutRequest;
 import com.william.Employee.Expense.and.Reimbursement.auth.utils.RegisterRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,6 @@ public class AuthService {
     public AuthResponse register(RegisterRequest registerRequest){
         var user = User.builder()
                 .name(registerRequest.getName())
-                .username(registerRequest.getUsername())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .role(UserRole.USER)
@@ -87,6 +86,12 @@ public class AuthService {
                 .build();
     }
 
+    public void logout(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email cannot be null or blank.");
+        }
+        refreshTokenService.deleteByRefreshToken(email);
+    }
 
 
     public AuthResponse adminLogin(LoginRequest loginRequest) {

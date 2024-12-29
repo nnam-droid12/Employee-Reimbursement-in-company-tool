@@ -39,10 +39,9 @@ public class AdminSeedService {
 
             var adminUser = User.builder()
                     .email(defaultAdminEmail)
-                    .password(hashedPassword)  // Save the hashed password
+                    .password(hashedPassword)
                     .role(UserRole.ADMIN)
-                    .username("defaultAdmin")  // Provide a default username
-                    .name("Default Admin")     // Provide a default name
+                    .name("Default Admin")
                     .build();
 
             userRepository.save(adminUser);

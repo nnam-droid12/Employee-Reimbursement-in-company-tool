@@ -1,10 +1,14 @@
 package com.william.Employee.Expense.and.Reimbursement.employee.service;
 
+import com.william.Employee.Expense.and.Reimbursement.employee.Exception.ExpenseNotFoundByMonthAndYear;
+import com.william.Employee.Expense.and.Reimbursement.employee.Exception.ExpenseNotFoundException;
+import com.william.Employee.Expense.and.Reimbursement.employee.Exception.FileNameExistException;
 import com.william.Employee.Expense.and.Reimbursement.employee.controller.NotificationController;
 import com.william.Employee.Expense.and.Reimbursement.employee.dto.ExpenseDto;
 import com.william.Employee.Expense.and.Reimbursement.employee.dto.ExpensePaginationResponse;
 import com.william.Employee.Expense.and.Reimbursement.employee.entities.Expense;
 import com.william.Employee.Expense.and.Reimbursement.employee.repository.ExpenseRepository;
+import com.william.Employee.Expense.and.Reimbursement.employee.search.ExpenseSpecifications;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -12,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -48,7 +54,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         public ExpenseDto logExpense(ExpenseDto expenseDto, MultipartFile file) throws IOException {
             // check if file is selected
             if(Files.exists(Paths.get(path + File.separator + file.getOriginalFilename()))){
-                throw new RuntimeException("file already exists, please seect another file");
+                throw new FileNameExistException("file already exists, please select another file");
             }
             // get the file name
             String uploadedFileName = fileService.uploadFile(path, file);
@@ -89,12 +95,12 @@ public class ExpenseServiceImpl implements ExpenseService {
             return response;
         }
 
-        @Cacheable(value ="movie", key="#movieId")
+        @Cacheable(value ="expense", key="#employeeId")
         @Override
-        public ExpenseDto getExpense(Integer movieId) {
+        public ExpenseDto getExpense(Integer employeeId) {
 
-            Expense expenses = expenseRepository.findById(movieId).
-                    orElseThrow(() -> new RuntimeException("expense not found"));
+            Expense expenses = expenseRepository.findById(employeeId).
+                    orElseThrow(() -> new ExpenseNotFoundException("expense not found"));
             String imageUrl = baseUrl + File.separator + expenses.getImage();
 
             ExpenseDto response = new ExpenseDto(
@@ -111,15 +117,15 @@ public class ExpenseServiceImpl implements ExpenseService {
             return response;
         }
 
-        @Cacheable(value = "movie", key = "'allMovies'")
+        @Cacheable(value = "expense", key = "'allExpenses'")
         @Override
         public List<ExpenseDto> getAllExpenses() {
 
-            List<Expense> movies = expenseRepository.findAll();
+            List<Expense> expenses = expenseRepository.findAll();
 
             List<ExpenseDto> allExpenses = new ArrayList<>();
 
-            for(Expense expense: movies ){
+            for(Expense expense: expenses ){
                 String imageUrl = baseUrl + File.separator + expense.getImage();
                 ExpenseDto expenseDto = new ExpenseDto(
                         expense.getEmployeeId(),
@@ -142,13 +148,13 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
         @Override
-        public ExpenseDto updateExpense(Integer movieId, ExpenseDto expenseDto, MultipartFile file) throws IOException {
-            Expense mv = expenseRepository.findById(movieId).
-                    orElseThrow(() -> new RuntimeException("movie not found"));
+        public ExpenseDto updateExpense(Integer employeeId, ExpenseDto expenseDto, MultipartFile file) throws IOException {
+            Expense exp = expenseRepository.findById(employeeId).
+                    orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
 
             // if file is nulldo nothing
             // if file is not null
-            String fileName = mv.getImage();
+            String fileName = exp.getImage();
             if(file != null){
                 Files.deleteIfExists(Paths.get(path + File.separator + fileName));
                 fileName = fileService.uploadFile(path, file);
@@ -157,7 +163,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expenseDto.setImage(fileName);
 
             Expense expense = new Expense(
-                    mv.getEmployeeId(),
+                    exp.getEmployeeId(),
                     expenseDto.getNameOfEmployee(),
                     expenseDto.getExpenseType(),
                     expenseDto.getCurrentDate(),
@@ -186,18 +192,18 @@ public class ExpenseServiceImpl implements ExpenseService {
             return response;
         }
 
-        @CacheEvict(value ="movie", key="#movieId")
+        @CacheEvict(value ="expense", key="#employeeId")
         @Override
-        public String deleteExpense(Integer movieId) throws IOException {
+        public String deleteExpense(Integer employeeId) throws IOException {
 
-            Expense mv = expenseRepository.findById(movieId).
-                    orElseThrow(() -> new RuntimeException("movie not found"));
+            Expense mv = expenseRepository.findById(employeeId).
+                    orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
             Integer id = mv.getEmployeeId();
 
             Files.deleteIfExists(Paths.get(path + File.separator + mv.getImage()));
             expenseRepository.delete(mv);
 
-            return "Movie deleted with Id" + id;
+            return "Expense deleted with Id" + id;
 
         }
 
@@ -248,7 +254,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             for(Expense expense: allExpenses){
                 String imageUrl = baseUrl + File.separator + expense.getImage();
-                ExpenseDto movieDto = new ExpenseDto(
+                ExpenseDto expenseDto = new ExpenseDto(
                         expense.getEmployeeId(),
                         expense.getNameOfEmployee(),
                         expense.getExpenseType(),
@@ -259,7 +265,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                         expense.getImage(),
                         imageUrl
                 );
-                newAllExpenses.add(movieDto);
+                newAllExpenses.add(expenseDto);
             }
 
             return new ExpensePaginationResponse(newAllExpenses, pageNum, pageSize,
@@ -267,6 +273,36 @@ public class ExpenseServiceImpl implements ExpenseService {
                     expensePages.getTotalPages(),
                     expensePages.isLast());
         }
+
+
+    @Override
+    public List<ExpenseDto> searchExpensesByMonthAndYear(Integer month, Integer year) {
+        Specification<Expense> spec = ExpenseSpecifications.filterByMonthAndYear(month, year);
+        List<Expense> expenses = expenseRepository.findAll(spec);
+
+        if (expenses.isEmpty()) {
+            throw new ExpenseNotFoundByMonthAndYear("No expenses found for the given Month and Year: "
+                    + month + "/" + year);
+        }
+
+
+        return expenses.stream()
+                .map(expense -> {
+                    String imageUrl = baseUrl + File.separator + expense.getImage();
+                    ExpenseDto dto = new ExpenseDto();
+                   dto.setEmployeeId(expense.getEmployeeId());
+                   dto.setNameOfEmployee(expense.getNameOfEmployee());
+                   dto.setExpenseType(expense.getExpenseType());
+                   dto.setCurrentDate(expense.getCurrentDate());
+                   dto.setExpenseDescription(expense.getExpenseDescription());
+                   dto.setPhoneNumber(expense.getPhoneNumber());
+                   dto.setEmployeeEmploymentId(expense.getEmployeeEmploymentId());
+                   dto.setImage(expense.getImage());
+                   dto.setImageurl(imageUrl);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
 
 
 }

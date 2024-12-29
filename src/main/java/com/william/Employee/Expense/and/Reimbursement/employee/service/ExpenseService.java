@@ -24,6 +24,8 @@ public interface ExpenseService {
 
     ExpensePaginationResponse getAllExpensePaginationSorting(Integer pageNum, Integer pageSize,
                                                           String sortBy, String dir);
+
+    List<ExpenseDto> searchExpensesByMonthAndYear(Integer month, Integer year);
 }
 
 

@@ -25,9 +25,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "username of user cannot be blank")
-    @Column(unique = true)
-    private String username;
 
     @NotBlank(message = "email of user cannot be blank")
     @Column(unique = true)
@@ -48,10 +45,9 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user")
     private RefreshToken refreshToken;
 
-    public User(Integer userId, @NotBlank(message = "name of user cannot be blank") String name, @NotBlank(message = "username of user cannot be blank") String username, @NotBlank(message = "email of user cannot be blank") @Email(message = "email must be in correct format") String email, @NotBlank(message = "password cannot be empty") @Size(min = 5, message = "password must be 5 characters and above") String password, UserRole role, ForgotPassword forgotPassword, RefreshToken refreshToken) {
+    public User(Integer userId, @NotBlank(message = "name of user cannot be blank") String name,  @NotBlank(message = "email of user cannot be blank") @Email(message = "email must be in correct format") String email, @NotBlank(message = "password cannot be empty") @Size(min = 5, message = "password must be 5 characters and above") String password, UserRole role, ForgotPassword forgotPassword, RefreshToken refreshToken) {
         this.userId = userId;
         this.name = name;
-        this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -113,8 +109,6 @@ public class User implements UserDetails {
     public void setName(String defaultAdmin) {
     }
 
-    public void setUsername(String admin) {
-    }
 
     public Integer getUserId() {
         return this.userId;
@@ -140,10 +134,12 @@ public class User implements UserDetails {
         return this.refreshToken;
     }
 
+    public void setRefreshToken(RefreshToken refreshToken) {
+    }
+
     public static class UserBuilder {
         private Integer userId;
         private @NotBlank(message = "name of user cannot be blank") String name;
-        private @NotBlank(message = "username of user cannot be blank") String username;
         private @NotBlank(message = "email of user cannot be blank")
         @Email(message = "email must be in correct format") String email;
         private @NotBlank(message = "password cannot be empty")
@@ -165,10 +161,6 @@ public class User implements UserDetails {
             return this;
         }
 
-        public UserBuilder username(@NotBlank(message = "username of user cannot be blank") String username) {
-            this.username = username;
-            return this;
-        }
 
         public UserBuilder email(@NotBlank(message = "email of user cannot be blank") @Email(message = "email must be in correct format") String email) {
             this.email = email;
@@ -196,11 +188,11 @@ public class User implements UserDetails {
         }
 
         public User build() {
-            return new User(this.userId, this.name, this.username, this.email, this.password, this.role, this.forgotPassword, this.refreshToken);
+            return new User(this.userId, this.name, this.email, this.password, this.role, this.forgotPassword, this.refreshToken);
         }
 
         public String toString() {
-            return "User.UserBuilder(userId=" + this.userId + ", name=" + this.name + ", username=" + this.username + ", email=" + this.email + ", password=" + this.password + ", role=" + this.role + ", forgotPassword=" + this.forgotPassword + ", refreshToken=" + this.refreshToken + ")";
+            return "User.UserBuilder(userId=" + this.userId + ", name=" + this.name + ", email=" + this.email + ", password=" + this.password + ", role=" + this.role + ", forgotPassword=" + this.forgotPassword + ", refreshToken=" + this.refreshToken + ")";
         }
     }
 }

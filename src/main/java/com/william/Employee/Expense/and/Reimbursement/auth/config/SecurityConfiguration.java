@@ -33,12 +33,10 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
+                                "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/ws/**",  "/api/v1/forgot-password/**").permitAll()
-                        .requestMatchers("/file/**").authenticated()
-                        .requestMatchers("/api/v1/movie/**").authenticated()
+                        .requestMatchers("/api/v1/auth/**",  "/api/v1/forgot-password/**", "/file/**").permitAll()
+                        .requestMatchers("/api/v1/expense/**", "/ws/**").authenticated()
                 ).sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

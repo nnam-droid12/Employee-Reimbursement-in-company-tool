@@ -15,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/file/")
@@ -38,10 +40,26 @@ public class FileController {
 
     @GetMapping("/{fileName}")
     public void getFileUrlHandler(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+        // Retrieve the file as an InputStream
         InputStream resourceFile = fileService.getFileUrl(path, fileName);
-        response.setContentType(MediaType.ALL_VALUE);
+
+        // Determine the file path
+        Path filePath = Paths.get(path).resolve(fileName);
+
+        // Dynamically determine the MIME type of the file
+        String contentType = Files.probeContentType(filePath);
+        if (contentType == null) {
+            contentType = "application/octet-stream"; // Fallback for unknown types
+        }
+
+        // Set the Content-Type header
+        response.setContentType(contentType);
+
+        // Copy the content of the file to the response output stream
         StreamUtils.copy(resourceFile, response.getOutputStream());
+        response.flushBuffer(); // Ensure all data is written to the output stream
     }
+
 }
 
 
